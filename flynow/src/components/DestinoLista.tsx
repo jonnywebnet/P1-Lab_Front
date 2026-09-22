@@ -29,9 +29,9 @@ interface WikipediaSummary {
 
 const destinosEmDestaque = [
   'Rio_de_Janeiro',
-  'Lisbon',
-  'Paris',
-  'Kyoto',
+  'Cristo_Redentor',
+  'Torre_Eiffel',
+  'Pelourinho',
 ]
 
 function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
@@ -50,7 +50,7 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
         const respostas = await Promise.all(
           destinosEmDestaque.map((destino) =>
             fetch(
-              `https://en.wikipedia.org/api/rest_v1/page/summary/${destino}`,
+              `https://pt.wikipedia.org/api/rest_v1/page/summary/${destino}`,
               { signal: controller.signal },
             ),
           ),
@@ -64,16 +64,16 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
           respostas.map((response) => response.json() as Promise<WikipediaSummary>),
         )
 
-          setDestinos(
-            resumos.map((resumo) => ({
-              id: resumo.pageid,
-              title: resumo.title,
-              extract: resumo.extract ?? 'Descubra mais sobre este destino.',
-              imagem: resumo.thumbnail?.source ?? null,
-              url: resumo.content_urls?.desktop?.page ?? '#',
-              liked: false,
-            })),
-          )
+        setDestinos(
+          resumos.map((resumo) => ({
+            id: resumo.pageid,
+            title: resumo.title,
+            extract: resumo.extract ?? 'Descubra mais sobre este destino.',
+            imagem: resumo.thumbnail?.source ?? null,
+            url: resumo.content_urls?.desktop?.page ?? '#',
+            liked: false,
+          })),
+        )
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return

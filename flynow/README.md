@@ -32,11 +32,11 @@ npm run lint
 
 ## API utilizada
 
-A aplicação consulta os resumos de quatro destinos por meio de endpoints públicos da Wikipedia REST API:
+A aplicação consulta os resumos de quatro cidades, pontos turísticos e monumentos por meio de endpoints públicos da Wikipedia REST API em português:
 
 - Rio de Janeiro
-- Lisboa
-- Paris
-- Kyoto
+- Cristo Redentor
+- Torre Eiffel
+- Pelourinho
 
 Nenhuma chave, variável de ambiente ou serviço de backend é necessária.
