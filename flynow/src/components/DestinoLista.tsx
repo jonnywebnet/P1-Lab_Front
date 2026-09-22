@@ -4,6 +4,8 @@ export interface Destino {
   id: number
   title: string
   extract: string
+  imagem: string | null
+  url: string
 }
 
 interface DestinoListaProps {
@@ -13,46 +15,116 @@ interface DestinoListaProps {
 interface WikipediaSummary {
   pageid: number
   title: string
-  extract: string
+  extract?: string
+  content_urls?: {
+    desktop?: {
+      page?: string
+    }
+  }
+  thumbnail?: {
+    source?: string
+  }
 }
+
+const destinosEmDestaque = [
+  'Rio_de_Janeiro',
+  'Lisbon',
+  'Paris',
+  'Kyoto',
+]
 
 function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
   const [destinos, setDestinos] = useState<Destino[]>(destinosIniciais)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
-    async function carregarDestino() {
+    const controller = new AbortController()
+
+    async function carregarDestinos() {
       try {
-        const response = await fetch(
-          'https://en.wikipedia.org/api/rest_v1/page/summary/Rio_de_Janeiro',
+        setCarregando(true)
+        setErro('')
+
+        const respostas = await Promise.all(
+          destinosEmDestaque.map((destino) =>
+            fetch(
+              `https://en.wikipedia.org/api/rest_v1/page/summary/${destino}`,
+              { signal: controller.signal },
+            ),
+          ),
         )
 
-        if (response.status !== 200) {
-          throw new Error(`Erro ao carregar destino: ${response.status}`)
+        if (respostas.some((response) => response.status !== 200)) {
+          throw new Error('Uma das fontes não respondeu corretamente.')
         }
 
-        const resumo: WikipediaSummary = await response.json()
+        const resumos: WikipediaSummary[] = await Promise.all(
+          respostas.map((response) => response.json() as Promise<WikipediaSummary>),
+        )
 
-        setDestinos([
-          {
+        setDestinos(
+          resumos.map((resumo) => ({
             id: resumo.pageid,
             title: resumo.title,
-            extract: resumo.extract,
-          },
-        ])
+            extract: resumo.extract ?? 'Descubra mais sobre este destino.',
+            imagem: resumo.thumbnail?.source ?? null,
+            url: resumo.content_urls?.desktop?.page ?? '#',
+          })),
+        )
       } catch (error) {
-        console.error('Não foi possível carregar o destino.', error)
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+        setErro('Não foi possível carregar os destinos agora. Tente novamente em instantes.')
+      } finally {
+        if (!controller.signal.aborted) {
+          setCarregando(false)
+        }
       }
     }
 
-    carregarDestino()
+    carregarDestinos()
+
+    return () => controller.abort()
   }, [])
 
+  if (carregando) {
+    return (
+      <div className="state-message" role="status">
+        <span className="loader" aria-hidden="true" />
+        <span>Buscando lugares para você...</span>
+      </div>
+    )
+  }
+
+  if (erro) {
+    return (
+      <div className="state-message state-error" role="alert">
+        <span>{erro}</span>
+      </div>
+    )
+  }
+
   return (
-    <ul>
+    <ul className="destinations-grid">
       {destinos.map((destino) => (
-        <li key={destino.id}>
-          <h2>{destino.title}</h2>
-          <p>{destino.extract}</p>
+        <li className="destination-card" key={destino.id}>
+          <div className="destination-image-wrapper">
+            {destino.imagem ? (
+              <img src={destino.imagem} alt={`Paisagem de ${destino.title}`} />
+            ) : (
+              <div className="destination-image-fallback" aria-hidden="true">✦</div>
+            )}
+            <span className="destination-tag">inspire-se</span>
+          </div>
+          <div className="destination-content">
+            <h3>{destino.title}</h3>
+            <p>{destino.extract}</p>
+            <a href={destino.url} target="_blank" rel="noreferrer">
+              Ver história <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </li>
       ))}
     </ul>

@@ -1,75 +1,42 @@
-# React + TypeScript + Vite
+# FlyNow · Minha Lista de Viagem
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação da P1 de Laboratório de Programação Front-End, construída com **Vite, React e TypeScript**. A interface apresenta destinos turísticos consultados pela API pública de resumos da Wikipedia e mantém um formulário de contato totalmente controlado no front-end.
 
-Currently, two official plugins are available:
+## Executar localmente
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Para gerar a versão de produção:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run build
 ```
+
+Para verificar as regras do projeto:
+
+```bash
+npm run lint
+```
+
+## Requisitos atendidos
+
+- Componentes separados: `Header`, `DestinoForm` e `DestinoLista`.
+- Formulário controlado por `useState`, sem backend ou envio de dados.
+- Consulta `GET` à API pública da Wikipedia com `fetch` dentro de `useEffect`.
+- Renderização dos destinos com `.map()` e `key` baseada no identificador da API.
+- Estados visuais de carregamento e erro.
+- Layout responsivo em CSS puro.
+
+## API utilizada
+
+A aplicação consulta os resumos de quatro destinos por meio de endpoints públicos da Wikipedia REST API:
+
+- Rio de Janeiro
+- Lisboa
+- Paris
+- Kyoto
+
+Nenhuma chave, variável de ambiente ou serviço de backend é necessária.

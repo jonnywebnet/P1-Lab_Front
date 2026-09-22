@@ -4,47 +4,77 @@ function DestinoForm() {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [destino, setDestino] = useState('')
+  const [enviado, setEnviado] = useState(false)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    console.log({ nome, email, destino })
+    setEnviado(true)
     setNome('')
     setEmail('')
     setDestino('')
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Entre em contato com a FlyNow</h2>
+    <form className="contact-form" id="contato" onSubmit={handleSubmit}>
+      <div className="form-row">
+        <label htmlFor="nome">
+          Seu nome
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            placeholder="Como podemos te chamar?"
+            value={nome}
+            onChange={(event) => {
+              setNome(event.target.value)
+              setEnviado(false)
+            }}
+            required
+          />
+        </label>
+        <label htmlFor="email">
+          Seu e-mail
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="voce@email.com"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              setEnviado(false)
+            }}
+            required
+          />
+        </label>
+      </div>
 
-      <label htmlFor="nome">Nome</label>
-      <input
-        id="nome"
-        type="text"
-        value={nome}
-        onChange={(event) => setNome(event.target.value)}
-        required
-      />
+      <label htmlFor="destino">
+        Destino de interesse
+        <input
+          id="destino"
+          name="destino"
+          type="text"
+          placeholder="Ex.: Lisboa, Kyoto, Salvador..."
+          value={destino}
+          onChange={(event) => {
+            setDestino(event.target.value)
+            setEnviado(false)
+          }}
+          required
+        />
+      </label>
 
-      <label htmlFor="email">E-mail</label>
-      <input
-        id="email"
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        required
-      />
-
-      <label htmlFor="destino">Destino de interesse</label>
-      <input
-        id="destino"
-        type="text"
-        value={destino}
-        onChange={(event) => setDestino(event.target.value)}
-        required
-      />
-
-      <button type="submit">Enviar</button>
+      <div className="form-submit-row">
+        <button className="submit-button" type="submit">
+          Salvar inspiração <span aria-hidden="true">↗</span>
+        </button>
+        {enviado && (
+          <p className="success-message" role="status">
+            Inspiração salva localmente.
+          </p>
+        )}
+      </div>
     </form>
   )
 }
