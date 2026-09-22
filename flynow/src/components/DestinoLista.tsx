@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 
+export interface PontoTuristico {
+  title: string
+  extract: string
+  imagem: string | null
+  url: string
+}
+
 export interface Destino {
   id: number
   title: string
   extract: string
   imagem: string | null
   url: string
+  monumento: PontoTuristico
   liked: boolean
 }
 
@@ -27,12 +35,26 @@ interface WikipediaSummary {
   }
 }
 
-const destinosEmDestaque = [
-  'Rio_de_Janeiro',
-  'Cristo_Redentor',
-  'Torre_Eiffel',
-  'Pelourinho',
+interface DestinoConfig {
+  cidade: string
+  monumento: string
+}
+
+const destinosEmDestaque: DestinoConfig[] = [
+  { cidade: 'Rio_de_Janeiro', monumento: 'Cristo_Redentor' },
+  { cidade: 'Paris', monumento: 'Torre_Eiffel' },
+  { cidade: 'Roma', monumento: 'Coliseu' },
+  { cidade: 'Salvador', monumento: 'Pelourinho' },
 ]
+
+function resumoParaPonto(resumo: WikipediaSummary): PontoTuristico {
+  return {
+    title: resumo.title,
+    extract: resumo.extract ?? 'Conheça este ponto turístico durante a viagem.',
+    imagem: resumo.thumbnail?.source ?? null,
+    url: resumo.content_urls?.desktop?.page ?? '#',
+  }
+}
 
 function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
   const [destinos, setDestinos] = useState<Destino[]>(destinosIniciais)
@@ -48,32 +70,47 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
         setErro('')
 
         const respostas = await Promise.all(
-          destinosEmDestaque.map((destino) =>
-            fetch(
-              `https://pt.wikipedia.org/api/rest_v1/page/summary/${destino}`,
-              { signal: controller.signal },
-            ),
-          ),
+          destinosEmDestaque.map(async ({ cidade, monumento }) => {
+            const [cidadeResponse, monumentoResponse] = await Promise.all([
+              fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${cidade}`, {
+                signal: controller.signal,
+              }),
+              fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${monumento}`, {
+                signal: controller.signal,
+              }),
+            ])
+
+            return { cidadeResponse, monumentoResponse }
+          }),
         )
 
-        if (respostas.some((response) => response.status !== 200)) {
+        if (
+          respostas.some(
+            ({ cidadeResponse, monumentoResponse }) =>
+              cidadeResponse.status !== 200 || monumentoResponse.status !== 200,
+          )
+        ) {
           throw new Error('Uma das fontes não respondeu corretamente.')
         }
 
-        const resumos: WikipediaSummary[] = await Promise.all(
-          respostas.map((response) => response.json() as Promise<WikipediaSummary>),
+        const destinosComPontos = await Promise.all(
+          respostas.map(async ({ cidadeResponse, monumentoResponse }) => {
+            const cidade = (await cidadeResponse.json()) as WikipediaSummary
+            const monumento = (await monumentoResponse.json()) as WikipediaSummary
+
+            return {
+              id: cidade.pageid,
+              title: cidade.title,
+              extract: cidade.extract ?? 'Descubra este destino durante a sua próxima viagem.',
+              imagem: cidade.thumbnail?.source ?? null,
+              url: cidade.content_urls?.desktop?.page ?? '#',
+              monumento: resumoParaPonto(monumento),
+              liked: false,
+            }
+          }),
         )
 
-        setDestinos(
-          resumos.map((resumo) => ({
-            id: resumo.pageid,
-            title: resumo.title,
-            extract: resumo.extract ?? 'Descubra mais sobre este destino.',
-            imagem: resumo.thumbnail?.source ?? null,
-            url: resumo.content_urls?.desktop?.page ?? '#',
-            liked: false,
-          })),
-        )
+        setDestinos(destinosComPontos)
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
@@ -126,7 +163,7 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
             ) : (
               <div className="destination-image-fallback" aria-hidden="true">✦</div>
             )}
-            <span className="destination-tag">inspire-se</span>
+            <span className="destination-tag">destino</span>
             <button
               className={`favorite-button${destino.liked ? ' is-liked' : ''}`}
               type="button"
@@ -140,8 +177,16 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
           <div className="destination-content">
             <h3>{destino.title}</h3>
             <p>{destino.extract}</p>
-            <a href={destino.url} target="_blank" rel="noreferrer">
-              Ver história <span aria-hidden="true">↗</span>
+            <div className="destination-landmark">
+              <span className="landmark-label">Ponto turístico em destaque</span>
+              <strong>{destino.monumento.title}</strong>
+              <p>{destino.monumento.extract}</p>
+              <a href={destino.monumento.url} target="_blank" rel="noreferrer">
+                Conhecer monumento <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <a className="destination-link" href={destino.url} target="_blank" rel="noreferrer">
+              Ver destino <span aria-hidden="true">↗</span>
             </a>
           </div>
         </li>
