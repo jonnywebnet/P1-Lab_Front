@@ -6,6 +6,7 @@ export interface Destino {
   extract: string
   imagem: string | null
   url: string
+  liked: boolean
 }
 
 interface DestinoListaProps {
@@ -63,15 +64,16 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
           respostas.map((response) => response.json() as Promise<WikipediaSummary>),
         )
 
-        setDestinos(
-          resumos.map((resumo) => ({
-            id: resumo.pageid,
-            title: resumo.title,
-            extract: resumo.extract ?? 'Descubra mais sobre este destino.',
-            imagem: resumo.thumbnail?.source ?? null,
-            url: resumo.content_urls?.desktop?.page ?? '#',
-          })),
-        )
+          setDestinos(
+            resumos.map((resumo) => ({
+              id: resumo.pageid,
+              title: resumo.title,
+              extract: resumo.extract ?? 'Descubra mais sobre este destino.',
+              imagem: resumo.thumbnail?.source ?? null,
+              url: resumo.content_urls?.desktop?.page ?? '#',
+              liked: false,
+            })),
+          )
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
@@ -106,6 +108,14 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
     )
   }
 
+  function alternarFavorito(id: number) {
+    setDestinos((destinosAtuais) =>
+      destinosAtuais.map((destino) =>
+        destino.id === id ? { ...destino, liked: !destino.liked } : destino,
+      ),
+    )
+  }
+
   return (
     <ul className="destinations-grid">
       {destinos.map((destino) => (
@@ -117,6 +127,15 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
               <div className="destination-image-fallback" aria-hidden="true">✦</div>
             )}
             <span className="destination-tag">inspire-se</span>
+            <button
+              className={`favorite-button${destino.liked ? ' is-liked' : ''}`}
+              type="button"
+              aria-label={destino.liked ? `Remover ${destino.title} dos favoritos` : `Favoritar ${destino.title}`}
+              aria-pressed={destino.liked}
+              onClick={() => alternarFavorito(destino.id)}
+            >
+              <span aria-hidden="true">{destino.liked ? '♥' : '♡'}</span>
+            </button>
           </div>
           <div className="destination-content">
             <h3>{destino.title}</h3>
