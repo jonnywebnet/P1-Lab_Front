@@ -87,7 +87,7 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
         if (
           respostas.some(
             ({ cidadeResponse, monumentoResponse }) =>
-              cidadeResponse.status !== 200 || monumentoResponse.status !== 200,
+              !cidadeResponse.ok || !monumentoResponse.ok,
           )
         ) {
           throw new Error('Uma das fontes não respondeu corretamente.')
@@ -115,6 +115,7 @@ function DestinoLista({ destinos: destinosIniciais }: DestinoListaProps) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
         }
+        console.error('Erro na API:', error)
         setErro('Não foi possível carregar os destinos agora. Tente novamente em instantes.')
       } finally {
         if (!controller.signal.aborted) {
