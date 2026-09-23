@@ -1,12 +1,9 @@
-import { useState } from 'react'
 import './App.css'
 import DestinoForm from './components/DestinoForm'
-import DestinoLista, { type Destino } from './components/DestinoLista'
+import DestinoLista from './components/DestinoLista'
 import Header from './components/Header'
 
 function App() {
-  const [destinos] = useState<Destino[]>([])
-
   return (
     <div className="app-shell" id="top">
       <Header titulo="Minha Lista de Viagem" />
@@ -52,7 +49,7 @@ function App() {
             </div>
             <p>Curadoria direto da Wikipedia para alimentar seus planos.</p>
           </div>
-          <DestinoLista destinos={destinos} />
+          <DestinoLista destinos={[]} />
         </section>
 
         <section className="contact-section" aria-labelledby="contact-title">

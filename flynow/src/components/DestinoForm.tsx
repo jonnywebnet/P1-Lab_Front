@@ -71,7 +71,7 @@ function DestinoForm() {
         </button>
         {enviado && (
           <p className="success-message" role="status">
-            Inspiração salva localmente.
+            Formulário enviado!
           </p>
         )}
       </div>
